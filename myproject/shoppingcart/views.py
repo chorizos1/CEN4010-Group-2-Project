@@ -20,26 +20,31 @@ def get_cart_view(req):
         try:
 
             data = json.loads(req.body)
-            username = data.get('username')
+            email = data.get('email')
+            password = data.get('password')
 
-            accountID = SupabaseDB.table("Account").select("id").eq("username", username).execute()
+            
+            session = SupabaseDB.auth.sign_in_with_password({
 
-            if(not accountID.data): print("empty")
+                "email": email,
+                "password": password,
+
+            })
+
+            accountID = SupabaseDB.table("Account").select("id").eq("email", email).execute()
             
             if(accountID.data):
-                dbDataResponse = SupabaseDB.table('Shopping_Cart').select('cart').eq('customerID', value=accountID.data[0]["id"]).execute()
+                dbDataResponse = SupabaseDB.table('Shopping_Cart').select('cart').eq('customerUUID', value=accountID.data[0]["id"]).execute()
                 shoppingCartItems = dbDataResponse.data
             
             else:
-                print("hi")
-                return JsonResponse({"error": f'No shopping cart found for user "{username}".'}, status=404)
+                return JsonResponse({"error": f'No shopping cart found for user "{email}".'}, status=404)
             
-            shoppingCartString = f"Shopping cart items for {username}:\n"
+            shoppingCartString = f"Shopping cart items for {email}:\n"
 
             for item in shoppingCartItems[0]["cart"]:
                 shoppingCartString = shoppingCartString + f"- {item}\n"
 
-            print(shoppingCartString)
             return JsonResponse({"Cart_data": shoppingCartString})
 
         except Exception as err:
