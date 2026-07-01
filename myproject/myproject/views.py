@@ -1,12 +1,12 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from supabase import create_client
 import json
-import supabase
+import os
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL)
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY)
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
