@@ -1,0 +1,76 @@
+{% extends 'layoutcart.html' %}
+
+{% block title %}
+    Shopping Cart
+{% endblock %}
+
+{% block content %}
+
+    {% csrf_token %}
+    <p>Home: <a href="/">Home</a> page.</p>
+    <h1>Shopping Cart</h1>
+
+    <label for="email">Email:</label>
+    <input type="text" id="email" name="email" placeholder="Enter email">
+    <br><br>
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" placeholder="Enter password">
+    <br><br>
+
+    <button type="button" id="get_shopping_cart">Get shopping cart</button>
+
+    <div id="shoppingcart-display" style="margin-top: 20px; white-space: pre-wrap;"></div>
+
+    <script>
+        document.getElementById('get_shopping_cart').addEventListener('click', async () => {
+
+            const email = document.getElementById('email').value;
+            const userpass = document.getElementById('password').value;
+            const displayDiv = document.getElementById('shoppingcart-display');
+
+            if (!email || !userpass) {
+
+                displayDiv.innerText = "Please enter an email and password.";
+                return;
+
+            }
+
+            displayDiv.innerText = "Loading cart...";
+
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            try {
+
+                const response = await fetch('{% url "get_shopping_cart" %}', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({ email: email, password: userpass })
+
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+
+                    displayDiv.innerText = data.Cart_data;
+
+                } else {
+
+                    displayDiv.innerText = "Error: " + data.error;
+
+                }
+
+            } catch (error) {
+
+                displayDiv.innerText = "Connection failed: " + error.message + "\nCheck your browser Console (F12) and Django Terminal.";
+                console.error("Full JS Error Context:", error);
+
+            }
+        });
+    </script>
+
+{% endblock %}
