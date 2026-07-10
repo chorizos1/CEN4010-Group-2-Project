@@ -40,10 +40,34 @@ def get_cart_view(req):
             else:
                 return JsonResponse({"error": f'No shopping cart found for user "{email}".'}, status=404)
             
-            shoppingCartString = f"Shopping cart items for {email}:\n"
+            shoppingCartString = f"Shopping cart items for {email}:\n\n"
+            shoppingCartDictionary = {}
 
+            # Gets all book IDs in the from the cart column in the Shopping_Cart table.
             for item in shoppingCartItems[0]["cart"]:
-                shoppingCartString = shoppingCartString + f"- {item}\n"
+
+                dbDataResponse = SupabaseDB.table('Books').select('*').eq('bookID', value=item).execute()
+                bookInformation = dbDataResponse.data
+
+                # Stores relevant book data into a dictionary with its respective ID as the key.
+                shoppingCartDictionary[item] = {
+
+                    "bookName": bookInformation[0]["bookName"],
+                    "bookAuthor": bookInformation[0]["bookAuthor"],
+                    "bookDescription": bookInformation[0]["bookDescription"],
+                    "bookPrice": bookInformation[0]["price"],
+                    "bookISBN13": bookInformation[0]["ISBN13"],
+                    "bookPublishDate": bookInformation[0]["publishedDate"],
+
+                }
+
+                # Constructs the string output used when displaying the shopping cart.
+                shoppingCartString = shoppingCartString + f"- {shoppingCartDictionary[item]["bookName"]}\n"
+                shoppingCartString = shoppingCartString + f"Author: {shoppingCartDictionary[item]["bookAuthor"]}\n"
+                shoppingCartString = shoppingCartString + f"Description: {shoppingCartDictionary[item]["bookDescription"]}\n"
+                shoppingCartString = shoppingCartString + f"Published: {shoppingCartDictionary[item]["bookPublishDate"]}\n"
+                shoppingCartString = shoppingCartString + f"ISBN13: {shoppingCartDictionary[item]["bookISBN13"]}\n"
+                shoppingCartString = shoppingCartString + f"Price: ${shoppingCartDictionary[item]["bookPrice"]}\n\n"
 
             return JsonResponse({"Cart_data": shoppingCartString})
 
