@@ -9,3 +9,6 @@ def homepage(req):
 def aboutpage(req):
     # return HttpResponse("About page.")
     return render(req, 'about.html')
+
+def shoppingcart(req):
+    return render(req, 'shoppingcart.html')
