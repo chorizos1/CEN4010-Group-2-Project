@@ -20,53 +20,69 @@ def aboutpage(req):
 
 @csrf_exempt
 def create_wishlist(req):
-    if req.method != "POST":
-        return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
+    if req.method == "POST":
+        try:
+            data = json.loads(req.body)
 
-    try:
-        data = json.loads(req.body)
+            user_uuid = data.get("userUUID")
+            wishlist_name = data.get("wishlistName")
 
-        user_uuid = data.get("userUUID")
-        wishlist_name = data.get("wishlistName")
+            if not user_uuid or not wishlist_name:
+                return JsonResponse(
+                    {"error": "userUUID and wishlistName are required"},
+                    status=400
+                )
 
-        if not user_uuid or not wishlist_name:
-            return JsonResponse({"error": "userUUID and wishlistName are required"}, status=400)
+            response = supabase.table("Wishlists").insert({
+                "userUUID": user_uuid,
+                "wishlistName": wishlist_name
+            }).execute()
 
-        response = supabase.table("Wishlists").insert({
-            "userUUID": user_uuid,
-            "wishlistName": wishlist_name
-        }).execute()
+            return JsonResponse({
+                "message": "Wishlist created successfully",
+                "data": response.data
+            }, status=201)
 
-        return JsonResponse({"message": "Wishlist created successfully", "data": response.data}, status=201)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON format"}, status=400)
 
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
 
+    return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
 
 @csrf_exempt
 def add_book_to_wishlist(req):
-    if req.method != "POST":
-        return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
+    if req.method == "POST":
+        try:
+            data = json.loads(req.body)
 
-    try:
-        data = json.loads(req.body)
+            wishlist_id = data.get("wishlistID")
+            book_id = data.get("bookID")
 
-        wishlist_id = data.get("wishlistID")
-        book_id = data.get("bookID")
+            if not wishlist_id or not book_id:
+                return JsonResponse(
+                    {"error": "wishlistID and bookID are required"},
+                    status=400
+                )
 
-        if not wishlist_id or not book_id:
-            return JsonResponse({"error": "wishlistID and bookID are required"}, status=400)
+            response = supabase.table("Wishlist_Books").insert({
+                "wishlistID": wishlist_id,
+                "bookID": book_id
+            }).execute()
 
-        response = supabase.table("Wishlist_Books").insert({
-            "wishlistID": wishlist_id,
-            "bookID": book_id
-        }).execute()
+            return JsonResponse({
+                "message": "Book added to wishlist successfully",
+                "data": response.data
+            }, status=201)
 
-        return JsonResponse({"message": "Book added to wishlist successfully", "data": response.data}, status=201)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON format"}, status=400)
 
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
 
+    return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
 
 def get_wishlist_books(req, wishlist_id):
     if req.method != "GET":
