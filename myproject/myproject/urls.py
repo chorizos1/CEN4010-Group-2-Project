@@ -22,6 +22,12 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.homepage),
     path('about/', views.aboutpage),
+
+    path('wishlists/create/', views.create_wishlist, name='create_wishlist'),
+    path('wishlists/add-book/', views.add_book_to_wishlist, name='add_book_to_wishlist'),
+    path('wishlists/<int:wishlist_id>/books/', views.get_wishlist_books, name='get_wishlist_books'),
+    path('wishlists/<int:wishlist_id>/books/<int:book_id>/delete/', views.remove_book_from_wishlist, name='remove_book_from_wishlist'),
+
     path('bookdetails/', include('bookdetails.urls')),
     path('api/', include('ratings.urls')),
     path('shoppingcart/', include('shoppingcart.urls')),
