@@ -120,3 +120,7 @@ def remove_book_from_wishlist(req, wishlist_id, book_id):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+def shoppingcart(req):
+    return render(req, 'shoppingcart.html')
+
