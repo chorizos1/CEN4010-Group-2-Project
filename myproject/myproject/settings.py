@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'shoppingcart',
     'booksorting',
     'bookdetails',
+    'profiles',
 ]
 
 MIDDLEWARE = [

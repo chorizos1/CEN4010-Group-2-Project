@@ -31,5 +31,6 @@ urlpatterns = [
     path('bookdetails/', include('bookdetails.urls')),
     path('api/', include('ratings.urls')),
     path('shoppingcart/', include('shoppingcart.urls')),
+    path('api/profile/', include('profiles.urls')),
     path('', include('booksorting.urls')),
 ]
