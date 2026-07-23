@@ -212,6 +212,7 @@ def createCart(req):
 
             return JsonResponse({"error": str(err)}, status = 500)
 
+@csrf_exempt
 def getAllBooksAvailable(req):
 
     if(req.method == 'GET'):
@@ -244,6 +245,7 @@ def getAllBooksAvailable(req):
 
     return JsonResponse({"error": "Invalid request method"}, status=400)
 
+@csrf_exempt
 def addBookToCart(req):
 
     if(req.method == 'POST'):
