@@ -20,10 +20,13 @@
 
     <button type="button" id="get_shopping_cart">Get shopping cart</button>
 
-    <div id="shoppingcart-display" style="margin-top: 20px; white-space: pre-wrap;"></div>
+    <div id="shoppingcart-display" style="margin-top: 20px;"></div>
 
     <script>
-        document.getElementById('get_shopping_cart').addEventListener('click', async () => {
+
+        document.getElementById('get_shopping_cart').addEventListener('click', displayCart)
+
+        async function displayCart() {
 
             const email = document.getElementById('email').value;
             const userpass = document.getElementById('password').value;
@@ -55,12 +58,228 @@
                 const data = await response.json();
 
                 if (response.ok) {
+                        
+                    displayDiv.innerText = data.Cart_msg;
 
-                    displayDiv.innerText = data.Cart_data;
+                    let htmlVar = `${data.Cart_msg}`;
+
+                    data.Cart_data.forEach(book => {
+
+                        const published = book.Published
+                            ? new Date(book.Published).toLocaleDateString("en-US", {
+
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+
+                            })
+                            : "N/A";
+
+                        htmlVar = htmlVar + `
+                            
+                            <br><br>- ${book.bookName}<br>
+                            Author: ${book.Author}<br>
+                            Description: ${book.Description}<br>
+                            Published: ${published}<br>
+                            ISBN13: ${book.ISBN13}<br>
+                            Price: $${book.Price}<br>
+
+                            <button class = "remove-book" data-bookid = "${book.bookID}">
+                                Remove from Cart
+                            </button>
+
+                        `
+                    })
+
+                    htmlVar = htmlVar + `
+
+                        <br><br><b>TOTAL CART PRICE:</b> $${data.Total_cart_price}<br><br><br><br>
+
+                        <label for = "Books">Add book to cart:</label><br>
+
+                        <select name = "Books" id = "bookSelect">
+
+                    `
+
+                    const responseAllBooks = await fetch('{%url "getAllBooks" %}', {
+
+                        method: 'GET'
+
+                    })
+
+                    const dataAllBooks = await responseAllBooks.json();
+
+                    if(responseAllBooks.ok) {
+
+                        dataAllBooks.booksData.forEach(bookDetails => {
+
+                            htmlVar = htmlVar + `
+                            <option value = "${bookDetails.bookID}">${bookDetails.bookName} by ${bookDetails.bookAuthor}</option>
+                            `
+
+                        })
+
+                    }
+
+                    htmlVar = htmlVar + `
+
+                        </select>
+                        <button class = "addBookToCart">Add book</button>
+                        <br><br>Clear shopping cart<br>
+
+                        <button class = "removeShoppingCart">Clear Shopping Cart</button>
+                    
+                    `
+                    displayDiv.innerHTML = htmlVar;
+
+                    document.querySelector(".addBookToCart").addEventListener("click", async () => {
+
+                        const email = document.getElementById('email').value;
+                        const userpass = document.getElementById('password').value;
+                        const bookID = document.getElementById('bookSelect').value
+
+                        const response = await fetch('{% url "addBook" %}', {
+
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrftoken
+                            },
+                            body: JSON.stringify({ email: email, password: userpass, bookID: bookID})
+
+                        })
+
+                        const data = await response.json();
+
+                        if(response.ok) {
+
+                            await displayCart()
+
+                        } else {
+
+                            displayDiv.innerText = "Error: " + data.error;
+
+                        }
+
+                    })
+
+                    document.querySelector(".removeShoppingCart").addEventListener("click", async () => {
+
+                        const email = document.getElementById('email').value;
+                        const userpass = document.getElementById('password').value;
+
+                        const response = await fetch('{% url "removeCart" %}', {
+
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrftoken
+                            },
+                            body: JSON.stringify({ email: email, password: userpass })
+
+                        })
+
+                        const data = await response.json();
+
+                        if(response.ok) {
+
+                            await displayCart()
+
+                        } else {
+
+                            displayDiv.innerText = "Error: " + data.error;
+
+                        }
+
+                    })
+
+                    document.querySelectorAll(".remove-book").forEach(button => {
+                            
+                        button.addEventListener("click", async () => {
+
+                            const bookID = button.dataset.bookid;
+                                
+                            const response = await fetch('{% url "remove_from_cart" %}', {
+                                method: 'PUT',
+                                headers: { 
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': csrftoken
+                                },
+                                body: JSON.stringify({ email: email, password: userpass, bookID: bookID})
+
+                            });
+
+                            const data = await response.json();
+
+                            if(response.ok) {
+
+                                await displayCart()
+
+                            } else {
+
+                                displayDiv.innerText = "Error: " + data.error;
+
+                            }
+
+                        });
+
+                    })
 
                 } else {
 
-                    displayDiv.innerText = "Error: " + data.error;
+                    if(data.cartRowEmpty) {
+
+                        displayDiv.innerHTML = `
+                        Error: ${data.error}
+
+                        <br><br>Create a new cart for the specified account with default books?<br>
+                        <button class = "createDefaultCart">Create cart</button>
+                        <button class = "skipCartCreate">No</button>
+
+                        `
+
+                        document.querySelector(".createDefaultCart").addEventListener("click", async () => {
+
+                            const email = document.getElementById('email').value;
+                            const userpass = document.getElementById('password').value;
+
+                            const response = await fetch('{% url "createCart" %}', {
+
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': csrftoken
+                                },
+                                body: JSON.stringify({ email: email, password: userpass })
+
+                            })
+
+                            const data = await response.json();
+
+                            if(response.ok) {
+
+                                await displayCart()
+
+                            } else {
+
+                                displayDiv.innerText = "Error: " + data.error;
+
+                            }
+
+                        })
+                                    
+                        document.querySelector(".skipCartCreate").addEventListener("click", async () => {
+
+                            displayDiv.innerHTML = ''
+
+                        })
+
+                    }
+                    else {
+
+                        displayDiv.innerText = "Error: " + data.error;
+
+                    }
 
                 }
 
@@ -70,7 +289,8 @@
                 console.error("Full JS Error Context:", error);
 
             }
-        });
+
+        }
     </script>
 
 {% endblock %}
